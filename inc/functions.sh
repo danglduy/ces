@@ -83,20 +83,38 @@ function f_install_sublimetext() {
 }
 
 function f_install_vncserver() {
-  yum install tigervnc-server
+  yum -y install tigervnc-server
   #Create vncserver launch file
   sudo -u $user touch /home/$user/vncserver.sh
   sudo -u $user chmod +x /home/$user/vncserver.sh
+  
   if [ $v_vnc_localhost == true ]; then
     sudo -u $user echo "vncserver -geometry 1280x650 -localhost" > /home/$user/vncserver.sh
   else
     sudo -u $user echo "vncserver -geometry 1280x650" > /home/$user/vncserver.sh
   fi
+  
+  cat <<EOT > /home/$user/.vnc/xstartup
+#!/bin/sh
+#
+# Uncomment the following two lines for normal desktop:
+# unset SESSION_MANAGER
+unset DBUS_SESSION_BUS_ADDRESS
+# exec /etc/X11/xinit/xinitrc
+#
+[ -x /etc/vnc/xstartup ] && exec /etc/vnc/xstartup
+[ -r $HOME/.Xresources ] && xrdb $HOME/.Xresources
+xsetroot -solid grey
+vncconfig -iconic &
+x-terminal-emulator -geometry 80x24+10+10 -ls -title "$VNCDESKTOP Desktop" &
+xfce4-session &
+EOT
 }
 
 function f_install_gui() {
   #Install xfce, vnc server, sublime-text
-  yum groupinstall "Xfce" -y
+  yum -y groupinstall "Xfce"
+  systemctl set-default graphical.target
   f_install_sublimetext
   f_install_vncserver
 }
@@ -188,5 +206,5 @@ function f_install_firewall() {
 }
 
 function f_postinstall() {
-  yum update
+  yum -y update
 }

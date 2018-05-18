@@ -1,3 +1,13 @@
+function f_enable_service() {
+  if [ $centosver == 7 ]; then
+    systemctl enable $1
+    systemctl start $1
+  elif [ $centosver == 6 ]; then
+    chkconfig $1 on
+    service $1 start
+  fi
+}
+
 function f_create_user() {
   # Create new user & prompt for password creation
   read -p "Your username: " user
@@ -44,9 +54,9 @@ EOT
 
 function f_create_swap() {
   #Create swap disk image if the system doesn't have swap.
-  if [ $centosver -ne 6 ]; then
+  if [ $centosver == 7 ]; then
     checkswap="$(swapon --show)"
-  else
+  elif [ $centosver == 6 ]; then
     checkswap="$(swapon --summary)"
   fi
 
@@ -119,7 +129,6 @@ EOT
 function f_install_gui() {
   #Install xfce, vnc server, sublime-text
   yum -y groupinstall "Xfce"
-  systemctl set-default graphical.target
   f_install_sublimetext
   f_install_vncserver
 }
@@ -152,8 +161,7 @@ function f_config_nginx() {
 function f_install_nginx() {
   yum -y install nginx
   f_config_nginx
-  systemctl enable nginx
-  systemctl start nginx
+  f_enable_service nginx
 }
 
 function f_install_php() {
@@ -183,8 +191,7 @@ function f_install_php() {
       chown -R root:apache /var/opt/rh/rh-php70/lib/php/wsdlcache
     fi
   fi
-  systemctl enable rh-php70-php-fpm
-  systemctl start rh-php70-php-fpm
+  f_enable_service rh-php70-php-fpm
 }
 
 function f_install_openvpn() {
@@ -206,8 +213,7 @@ EOT
 
 
   yum -y install MariaDB-server MariaDB-client
-  systemctl enable mariadb.service
-  systemctl start mariadb.service
+  f_enable_service mysql
 }
 
 function f_secure_db() {
@@ -222,13 +228,33 @@ EOF
 }
 
 function f_install_firewall() {
-  for i in "${v_portslist[@]}"
-  do
-    :
-    echo "Added port $i to firewall ports open list"; firewall-cmd --zone=public --permanent --add-port=$i/tcp &> /dev/null
+  if [ $centosver == 7 ]; then
+    for i in "${v_portslist[@]}"
+    do
+      :
+      echo "Added port $i to firewall ports open list"; firewall-cmd --zone=public --permanent --add-port=$i/tcp &> /dev/null
     done
-  firewall-cmd --zone=public --remove-service=ssh --permanent
-  firewall-cmd --reload
+    firewall-cmd --zone=public --remove-service=ssh --permanent
+    firewall-cmd --reload
+  elif [ $centosver == 6 ]; then
+    iptables -F
+    iptables -X
+
+    # Set default chain policies
+    iptables -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+    iptables -P INPUT DROP
+    iptables -P FORWARD DROP
+    iptables -P OUTPUT ACCEPT
+
+    # Accept on localhost
+    iptables -A INPUT -i lo -j ACCEPT
+    iptables -A OUTPUT -o lo -j ACCEPT
+    for i in "${v_portslist[@]}"
+    do
+      :
+      echo "Added port $i to firewall ports open list"; iptables -A INPUT -p tcp --dport $i -j ACCEPT &> /dev/null
+    done
+    service iptables save
 }
 
 function f_postinstall() {

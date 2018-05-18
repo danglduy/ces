@@ -1,5 +1,5 @@
 # Description
-Linux Environment Install for CentOS 7
+Linux Environment Install for CentOS 6/7
 
 This script will:
 - Install LAMP/LEMP: Apache/Nginx + MariaDB + PHP-FPM

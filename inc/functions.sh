@@ -149,6 +149,7 @@ function f_config_nginx() {
   setsebool -P httpd_can_network_connect=1
   semanage fcontext -a -t httpd_sys_rw_content_t '/usr/share/nginx/html(/.*)?'
   rm /etc/nginx/nginx.conf
+  rm /etc/nginx/conf.d/*
 
   mkdir /etc/nginx/sites-available
   mkdir /etc/nginx/sites-enabled

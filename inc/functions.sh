@@ -189,15 +189,17 @@ function f_install_openvpn() {
 }
 
 function f_install_mariadb() {
-  cat <<EOT >> /etc/yum.repos.d/MariaDB.repo
-# MariaDB 10.1 CentOS repository list - created 2018-05-16 04:23 UTC
+    cat <<EOT >> /etc/yum.repos.d/MariaDB.repo
+# MariaDB 10.1 CentOS repository list
 # http://downloads.mariadb.org/mariadb/repositories/
 [mariadb]
 name = MariaDB
-baseurl = http://yum.mariadb.org/10.1/centos7-amd64
+baseurl = http://yum.mariadb.org/10.1/centos$centosver-amd64
 gpgkey=https://yum.mariadb.org/RPM-GPG-KEY-MariaDB
 gpgcheck=1
 EOT
+
+
   yum -y install MariaDB-server MariaDB-client
   systemctl enable mariadb.service
   systemctl start mariadb.service

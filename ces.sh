@@ -55,6 +55,9 @@ if [[ $EUID -ne 0 ]]; then
 fi
 #
 
+#Check major version number
+centosver="$(cat /etc/redhat-release | grep -oP '(?<= )[0-9]+(?=\.)')"
+
 source <(curl -s https://raw.githubusercontent.com/zldang/ces/master/inc/functions.sh)
 source <(curl -s https://raw.githubusercontent.com/zldang/ces/master/inc/install.sh)
 

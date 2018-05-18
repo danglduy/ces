@@ -255,6 +255,7 @@ function f_install_firewall() {
       echo "Added port $i to firewall ports open list"; iptables -A INPUT -p tcp --dport $i -j ACCEPT &> /dev/null
     done
     service iptables save
+  fi
 }
 
 function f_postinstall() {

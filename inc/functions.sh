@@ -148,6 +148,7 @@ function f_install_nginx() {
   yum -y install nginx
   f_config_nginx
   systemctl enable nginx
+  systemctl start nginx
 }
 
 function f_install_php() {
@@ -178,6 +179,7 @@ function f_install_php() {
     fi
   fi
   systemctl enable rh-php70-php-fpm
+  systemctl start rh-php70-php-fpm
 }
 
 function f_install_openvpn() {

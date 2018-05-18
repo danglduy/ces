@@ -11,7 +11,7 @@ server {
             root           /usr/share/nginx/html;
             fastcgi_pass   127.0.0.1:9000;
             fastcgi_index  index.php;
-            fastcgi_param  SCRIPT_FILENAME  /scripts$fastcgi_script_name;
+            fastcgi_param  SCRIPT_FILENAME      $request_filename;
             include        fastcgi_params;
         }
 

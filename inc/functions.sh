@@ -87,13 +87,13 @@ function f_install_vncserver() {
   #Create vncserver launch file
   sudo -u $user touch /home/$user/vncserver.sh
   sudo -u $user chmod +x /home/$user/vncserver.sh
-  
+
   if [ $v_vnc_localhost == true ]; then
     sudo -u $user echo "vncserver -geometry 1280x650 -localhost" > /home/$user/vncserver.sh
   else
     sudo -u $user echo "vncserver -geometry 1280x650" > /home/$user/vncserver.sh
   fi
-  
+
   cat <<EOT > /home/$user/.vnc/xstartup
 #!/bin/sh
 #
@@ -148,18 +148,20 @@ function f_install_php() {
                   sclo-php70-php-imap sclo-php70-php-mcrypt \
                   sclo-php70-php-tidy \
                   sclo-php70-php-pecl-memcached sclo-php70-php-pecl-redis sclo-php70-php-pecl-imagick
-  systemctl enable rh-php70-php-fpm
   if [ $v_install_http_srv == true ]; then
     if [ $v_http_srv == "nginx" ]; then
       chown -R root:nginx /var/opt/rh/rh-php70/lib/php/session
       chown -R root:nginx /var/opt/rh/rh-php70/lib/php/opcache
       chown -R root:nginx /var/opt/rh/rh-php70/lib/php/wsdlcache
+      sed -i 's/user = apache/user = nginx/g' /etc/opt/rh/rh-php70/php-fpm.d/www.conf
+      sed -i 's/group = apache/group = nginx/g' /etc/opt/rh/rh-php70/php-fpm.d/www.conf
     elif [ $v_http_srv == "apache" ]; then
       chown -R root:apache /var/opt/rh/rh-php70/lib/php/session
       chown -R root:apache /var/opt/rh/rh-php70/lib/php/opcache
       chown -R root:apache /var/opt/rh/rh-php70/lib/php/wsdlcache
     fi
   fi
+  systemctl enable rh-php70-php-fpm
 }
 
 function f_install_openvpn() {

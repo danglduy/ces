@@ -127,10 +127,26 @@ function f_install_essential_packages() {
 
 function f_install_apache() {
   yum -y install httpd
+  setsebool -P httpd_can_network_connect=1
+}
+
+function f_config_nginx() {
+  chown -R nginx:nginx /usr/share/nginx/html/
+  setsebool -P httpd_can_network_connect=1
+  semanage fcontext -a -t httpd_sys_rw_content_t '/usr/share/nginx/html(/.*)?'
+  rm /etc/nginx/nginx.conf
+
+  mkdir /etc/nginx/sites-available
+  mkdir /etc/nginx/sites-enabled
+  curl https://raw.githubusercontent.com/zldang/ces/master/inc/nginx/nginx_centos.conf -o /etc/nginx/nginx.conf
+  curl https://raw.githubusercontent.com/zldang/ces/master/inc/nginx/default -o /etc/nginx/sites-available/default
+  ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
 }
 
 function f_install_nginx() {
   yum -y install nginx
+  f_config_nginx
   systemctl enable nginx
 }
 
@@ -186,7 +202,6 @@ EOT
 }
 
 function f_secure_db() {
-  read -sp "Set mysql root password: " MYSQL_ROOT_PASSWORD
   sudo mysql -uroot << EOF
   UPDATE mysql.user SET Password=PASSWORD("$MYSQL_ROOT_PASSWORD") WHERE User='root';
   DELETE FROM mysql.user WHERE user='root' AND host NOT IN ('localhost', '127.0.0.1', '::1');
